@@ -1,6 +1,10 @@
 package user
 
-import "errors"
+import (
+	"errors"
+
+	"gorm.io/gorm"
+)
 
 var (
 	ErrNoUser  = errors.New("No user found")
@@ -8,31 +12,47 @@ var (
 )
 
 type UserMemoryRepository struct {
-	data map[string]*User
+	db   *gorm.DB
+	data map[string]*user
 }
 
-func NewMemoryRepo() *UserMemoryRepository {
+func NewMemoryRepo(db *gorm.DB) *UserMemoryRepository {
 	return &UserMemoryRepository{
-		data: map[string]*User{
-			"rvasily": &User{
+		db: db,
+		data: map[string]*user{
+			"rvasily": &user{
 				ID:       1,
 				Login:    "rvasily",
-				password: "love",
+				Password: "love",
 			},
 		},
 	}
 }
 
-func (repo *UserMemoryRepository) Authorize(login, pass string) (*User, error) {
-	u, ok := repo.data[login]
-	if !ok {
+func (repo *UserMemoryRepository) Authorize(login, pass string) (*user, error) {
+	users := make([]user, 0)
+	repo.db.Where("login = ?", login).Find(&users)
+	if len(users) != 1 {
 		return nil, ErrNoUser
 	}
 
-	// dont do this in production :)
-	if u.password != pass {
+	if users[0].Password != pass {
 		return nil, ErrBadPass
 	}
 
-	return u, nil
+	return &users[0], nil
+}
+
+func (repo *UserMemoryRepository) AddUser(login, password string) error {
+	newUser := user{
+		Login:    login,
+		Password: password,
+	}
+
+	db := repo.db.Create(&newUser)
+	if db.Error != nil {
+		return db.Error
+	}
+
+	return nil
 }

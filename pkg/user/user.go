@@ -1,11 +1,12 @@
 package user
 
-type User struct {
+type user struct {
 	ID       uint32
 	Login    string
-	password string
+	Password string
 }
 
 type UserRepo interface {
-	Authorize(login, pass string) (*User, error)
+	Authorize(login, password string) (*user, error)
+	AddUser(login, password string) error
 }

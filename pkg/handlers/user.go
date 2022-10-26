@@ -51,3 +51,21 @@ func (h *UserHandler) Logout(w http.ResponseWriter, r *http.Request) {
 	h.Sessions.DestroyCurrent(w, r)
 	http.Redirect(w, r, "/", 302)
 }
+
+func (h *UserHandler) Registration(w http.ResponseWriter, r *http.Request) {
+	err := h.Tmpl.ExecuteTemplate(w, "registration.html", nil)
+	if err != nil {
+		http.Error(w, `Template errror`, http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *UserHandler) Register(w http.ResponseWriter, r *http.Request) {
+	err := h.UserRepo.AddUser(r.FormValue("login"), r.FormValue("password"))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/", http.StatusPermanentRedirect)
+}

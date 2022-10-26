@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"html/template"
 	"net/http"
 
@@ -38,26 +37,12 @@ func main() {
 		panic(err) // TODO
 	}
 
-	type testOrm struct {
-		Di          int
-		Description int `sql:"null"`
-	}
-
-	testItem := testOrm{}
-	db.Table("test_table").Take(&testItem)
-	fmt.Println(testItem)
-
-	toCreate := testOrm{10500, 3}
-	db.Table("test_table").Create(&toCreate)
-	db.Table("test_table").Take(&testItem)
-	fmt.Println(testItem)
-
 	sm := session.NewSessionsManager()
 	zapLogger, _ := zap.NewProduction()
 	defer zapLogger.Sync() // flushes buffer, if any
 	logger := zapLogger.Sugar()
 
-	userRepo := user.NewMemoryRepo()
+	userRepo := user.NewMemoryRepo(db)
 	itemsRepo := items.NewMemoryRepo()
 
 	userHandler := &handlers.UserHandler{
@@ -77,6 +62,8 @@ func main() {
 	r.HandleFunc("/", userHandler.Index).Methods("GET")
 	r.HandleFunc("/login", userHandler.Login).Methods("POST")
 	r.HandleFunc("/logout", userHandler.Logout).Methods("POST")
+	r.HandleFunc("/registration", userHandler.Registration).Methods("GET")
+	r.HandleFunc("/registration", userHandler.Register).Methods("POST")
 
 	r.HandleFunc("/items", handlers.List).Methods("GET")
 	r.HandleFunc("/items/new", handlers.AddForm).Methods("GET")

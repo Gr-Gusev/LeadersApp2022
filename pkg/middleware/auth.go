@@ -9,7 +9,8 @@ import (
 
 var (
 	noAuthUrls = map[string]struct{}{
-		"/login": struct{}{},
+		"/login":        struct{}{},
+		"/registration": struct{}{},
 	}
 	noSessUrls = map[string]struct{}{
 		"/": struct{}{},
@@ -18,7 +19,7 @@ var (
 
 func Auth(sm *session.SessionsManager, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("auth middleware")
+		//fmt.Println("auth middleware")
 		if _, ok := noAuthUrls[r.URL.Path]; ok {
 			next.ServeHTTP(w, r)
 			return
